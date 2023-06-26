@@ -26,7 +26,7 @@ public class ProveedorController {
     }
 
     @GetMapping("/{idProveedor}")
-    public ResponseEntity<ProveedorEntity> getProveedorById(@PathVariable("proveedorId") String idProveedor){
+    public ResponseEntity<ProveedorEntity> getProveedorById(@PathVariable("idProveedor") String idProveedor){
         ProveedorEntity proveedores = proveedorService.obtenerProveedorPorId(idProveedor);
         return ResponseEntity.ok(proveedores);
     }
