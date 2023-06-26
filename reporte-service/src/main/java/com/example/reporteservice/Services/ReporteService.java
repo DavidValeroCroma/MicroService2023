@@ -1,12 +1,20 @@
 package com.example.reporteservice.Services;
 
+import com.example.reporteservice.Config.RestTemplateConfig;
 import com.example.reporteservice.Entities.ReporteEntity;
+import com.example.reporteservice.Models.AcopioModel;
 import com.example.reporteservice.Repositories.ReporteRepository;
 import lombok.Generated;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -17,12 +25,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ReporteService{
 
     @Autowired
     ReporteRepository reporteRepository;
+
+    @Autowired
+    RestTemplate restTemplate;
+
     private final Logger logg = LoggerFactory.getLogger(ReporteService.class);
 
     public ArrayList<ReporteEntity> obtenerQuincenas(){
@@ -73,7 +86,16 @@ public class ReporteService{
         reporteRepository.deleteAll(datas);
     }
 
+    public List<AcopioModel> consultaAcopio(String proveedorId){
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<List<AcopioModel>> response = restTemplate.exchange("http://acopio-service/acopio/" + proveedorId, HttpMethod.GET, entity, new ParameterizedTypeReference<List<AcopioModel>>() {});
 
+        List<AcopioModel> acopio = response.getBody();
+        return acopio;
+    }
+
+    /*
     public void guardarDataDB(String proveedor, String grasa, String solido){
 
         Double cantLeche = 0.0;
@@ -162,37 +184,38 @@ public class ReporteService{
 
     }
 
+    */
 
     @Generated
-    public void leerCsv(String direccion){
+    public void leerCsv(String direccion) {
         String texto = "";
         BufferedReader bf = null;
         //reporteRepository.deleteAll();
-        try{
+        try {
             bf = new BufferedReader(new FileReader(direccion));
             String temp = "";
             String bfRead;
             int count = 1;
-            while((bfRead = bf.readLine()) != null){
-                if (count == 1){
+            while ((bfRead = bf.readLine()) != null) {
+                if (count == 1) {
                     count = 0;
-                }
-                else{
-                    guardarDataDB(bfRead.split(";")[0], bfRead.split(";")[1], bfRead.split(";")[2]);
+                } else {
+                    //guardarDataDB(bfRead.split(";")[0], bfRead.split(";")[1], bfRead.split(";")[2]);
                     temp = temp + "\n" + bfRead;
                 }
             }
             texto = temp;
             System.out.println("Archivo leido exitosamente");
-        }catch(Exception e){
+        } catch (Exception e) {
             System.err.println("No se encontro el archivo");
-        }finally{
-            if(bf != null){
-                try{
+        } finally {
+            if (bf != null) {
+                try {
                     bf.close();
-                }catch(IOException e){
+                } catch (IOException e) {
                     logg.error("ERROR", e);
                 }
             }
         }
+    }
 }

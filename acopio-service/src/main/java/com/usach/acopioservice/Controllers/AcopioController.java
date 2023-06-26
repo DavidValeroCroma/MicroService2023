@@ -28,7 +28,7 @@ public class AcopioController {
     }
 
     @GetMapping("/{idProveedor}")
-    public ResponseEntity<List<AcopioEntity>> getByIdProveedor(@PathVariable("proveedorId") String idProveedor){
+    public ResponseEntity<List<AcopioEntity>> getByIdProveedor(@PathVariable("idProveedor") String idProveedor){
         List<AcopioEntity> acopios = acopioService.obtenerAcopioPorProveedor(idProveedor);
         if (acopios.isEmpty()){
             return ResponseEntity.noContent().build();
