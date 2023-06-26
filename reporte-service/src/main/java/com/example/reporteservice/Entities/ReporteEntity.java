@@ -29,5 +29,4 @@ public class ReporteEntity {
     private Double varCantLeche;
     private Double promedioLeche;
     private Integer nroDias;
-
 }

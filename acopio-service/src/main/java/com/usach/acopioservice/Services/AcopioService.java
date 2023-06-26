@@ -29,53 +29,101 @@ public class AcopioService {
 
     private final Logger logg = LoggerFactory.getLogger(AcopioService.class);
 
-    public ArrayList<AcopioEntity> obtenerAcopios(){
+    public ArrayList<AcopioEntity> obtenerAcopios() {
         return (ArrayList<AcopioEntity>) acopioRepository.findAll();
     }
 
-    public ArrayList<AcopioEntity> obtenerAcopiosPorProveedor(Long id){
-        return (ArrayList<AcopioEntity>) acopioRepository.findByIdProveedor(id);
+    public ArrayList<AcopioEntity> obtenerAcopioPorProveedor(String idProveedor){
+        return acopioRepository.findByIdProveedor(idProveedor);
     }
 
-    public void crearAcopio(Long idProveedor, Date fecha, Character turno, Double leche){
-        AcopioEntity acopioAux = new AcopioEntity();
-        acopioAux.setIdProveedor(idProveedor);
-        acopioAux.setFecha(fecha);
-        acopioAux.setLeche(leche);
-        if (turno == 'M' || turno == 'T'){
-            acopioAux.setTurno(turno);
-        }else{
-            turno = 'M';
-            acopioAux.setTurno(turno);
-        }
-        acopioRepository.save(acopioAux);
+    public boolean exiteAlguno(String idProvedor){
+        return acopioRepository.existsAny(idProvedor);
     }
 
-    public ArrayList<AcopioEntity> obtenerAcopiosPorQuincena(Integer quincena, Integer mes, Integer año, Long idProveedor){
-        ArrayList<AcopioEntity> acopiosQuincena = new ArrayList<>();
-        ArrayList<AcopioEntity> totalAcopios = obtenerAcopiosPorProveedor(idProveedor);
+    public Double totalLecheQuincena(String idProveedor){
 
-        for (AcopioEntity acopio: totalAcopios){
-            if (quincena == 1 && acopio.getFecha().getDay() < 15  && acopio.getFecha().getDay() > 0 && acopio.getFecha().getMonth() == mes && acopio.getFecha().getYear()== año){
-                acopiosQuincena.add(acopio);
-            }
-            if (quincena == 2 && acopio.getFecha().getDay() <= 31  && acopio.getFecha().getDay() >= 15  && acopio.getFecha().getMonth() == mes && acopio.getFecha().getYear()== año){
-                acopiosQuincena.add(acopio);
-            }
-        }
+        ArrayList<AcopioEntity> acopioQuincena = obtenerAcopioPorProveedor(idProveedor);
+        double acum = 0;
 
-        return acopiosQuincena;
-    }
-
-    public double totalLecheQuincena(Integer quincena, Integer mes, Integer año, Long idProveedor){
-        ArrayList<AcopioEntity> acopiosQuincena = obtenerAcopiosPorQuincena(quincena, mes, año, idProveedor);
-        double acum = 0 ;
-
-        for (AcopioEntity acopio:acopiosQuincena){
+        for (AcopioEntity acopio:acopioQuincena){
             acum = acum + acopio.getLeche();
         }
 
         return acum;
+    }
+
+    public Date conseguirFechaAcopios(String proveedor){
+        AcopioEntity acopioAux = acopioRepository.getTopByIdProveedor(proveedor);
+        return acopioAux.getFecha();
+    }
+
+    public int cantDias(String idProveedor){
+        ArrayList<AcopioEntity> acopios = obtenerAcopioPorProveedor(idProveedor);
+        int acum = 0;
+        Date fechaAnt = new Date();
+        for (AcopioEntity acopio: acopios){
+            if (acopio.getFecha() != fechaAnt){
+                acum = acum + 1;
+            }
+            fechaAnt = acopio.getFecha();
+        }
+        return acum;
+    }
+
+    public Double bonificacionCons(String idProveedor){
+
+        int diasSeguidos = 0;
+        int diasTardeSeguidos = 0;
+        int diasMañanaSeguidos = 0;
+        Character turnoPrevio = 'O';
+        Character turnoDiaPrevio = 'O';
+        int diaPrevio = 200;
+
+        if(acopioRepository.existsAny(idProveedor)) {
+            ArrayList<AcopioEntity> acopios = obtenerAcopioPorProveedor(idProveedor);
+            //calculamos los dias y/o turnos seguidos
+            for (AcopioEntity acopio : acopios) {
+
+                if (acopio.getFecha().getDay() == diaPrevio + 1) {
+                    if ((turnoPrevio == 'M' || turnoDiaPrevio == 'M') && acopio.getTurno() == 'M') {
+                        diasMañanaSeguidos = diasMañanaSeguidos + 1;
+                    } else if ((turnoPrevio == 'T' || turnoDiaPrevio == 'T') && acopio.getTurno() == 'T') {
+                        diasTardeSeguidos = diasTardeSeguidos + 1;
+                    } else {
+                        diasMañanaSeguidos = 0;
+                        diasTardeSeguidos = 0;
+                    }
+
+                } else if (acopio.getFecha().getDay() == diaPrevio) {
+                    if (turnoPrevio == 'M' && acopio.getTurno() == 'T') {
+                        diasSeguidos = diasSeguidos + 1;
+                    }
+                } else {
+                    diasSeguidos = 0;
+                    diasMañanaSeguidos = 0;
+                    diasTardeSeguidos = 0;
+                }
+
+                turnoDiaPrevio = turnoPrevio;
+                turnoPrevio = acopio.getTurno();
+                diaPrevio = acopio.getFecha().getDay();
+
+            }
+        }
+        //Vemos cual es la bonificación que le corresponde
+
+        if(diasSeguidos >= 10){
+            return 0.2;
+
+        }else if(diasMañanaSeguidos >= 10){
+            return 0.12;
+
+        }else if(diasTardeSeguidos >= 10){
+            return 0.08;
+        }
+        return  0.0;
+
     }
 
     @Generated
@@ -98,6 +146,33 @@ public class AcopioService {
         else{
             return "No se pudo guardar el archivo";
         }
+    }
+
+    @Generated
+    public void guardarData(AcopioEntity data){
+        acopioRepository.save(data);
+    }
+
+    public void guardarDataDB(String fecha, String turno, String proveedor, String klsLeche){
+        AcopioEntity newAcopio = new AcopioEntity();
+        System.out.println(fecha);
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+        Date fechaAux = null;
+        try{
+            fechaAux = formato.parse(fecha);
+
+            newAcopio.setFecha(fechaAux);
+            newAcopio.setIdProveedor(proveedor);
+            newAcopio.setTurno(turno.charAt(0));
+            newAcopio.setLeche(Double.parseDouble(klsLeche));
+            guardarData(newAcopio);
+        }catch(ParseException e){
+            System.out.println("Error al parsear la fecha.");
+            e.printStackTrace();
+        }
+    }
+    public void eliminarData(ArrayList<AcopioEntity> datas){
+        acopioRepository.deleteAll(datas);
     }
 
     @Generated
@@ -134,31 +209,4 @@ public class AcopioService {
         }
 
     }
-    public void guardarData(AcopioEntity data){
-        acopioRepository.save(data);
-    }
-
-
-    public void guardarDataDB(String fecha, String turno, String proveedor, String kls_leche){
-        AcopioEntity newData = new AcopioEntity();
-
-        SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
-        Date fechaAux = null;
-        try {
-            fechaAux = formato.parse(fecha);
-            newData.setFecha(fechaAux);
-            newData.setTurno(turno.charAt(0));
-            newData.setIdProveedor(Long.parseLong(proveedor));
-            newData.setLeche(Double.parseDouble(kls_leche));
-            guardarData(newData);
-        } catch (ParseException e) {
-            System.out.println("Error al parsear la fecha.");
-            e.printStackTrace();
-        }
-
-    }
-    public void eliminarData(ArrayList<AcopioEntity> datas){
-        acopioRepository.deleteAll(datas);
-    }
-
 }

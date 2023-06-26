@@ -73,7 +73,7 @@ public class ReporteService{
         reporteRepository.deleteAll(datas);
     }
 
-    /*
+
     public void guardarDataDB(String proveedor, String grasa, String solido){
 
         Double cantLeche = 0.0;
@@ -153,11 +153,15 @@ public class ReporteService{
 
         guardarData(newReporte);
 
+
+        //debemos conectarlo con un controlador
         pagoService.generarPago(newReporte.getId(),newReporte.getIdProveedor(),newReporte.getLeche(),newReporte.getQuincena(),newReporte.getMes(),newReporte.getAnio(),newReporte.getSolidos(),newReporte.getGrasa(),newReporte.getVarSolidos(),newReporte.getVarGrasa(),newReporte.getVarCantLeche(),newReporte.getPromedioLeche(), newReporte.getPorGrasa(),newReporte.getPorSolidos());
+        //tal vez con lo siguiente se arregle
+        //return newReporte;
 
 
     }
-    */
+
 
     @Generated
     public void leerCsv(String direccion){

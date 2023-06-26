@@ -19,8 +19,17 @@ public class AcopioController {
     AcopioService acopioService;
 
     @GetMapping
-    ResponseEntity<List<AcopioEntity>> findAll(){
+    public ResponseEntity<List<AcopioEntity>> findAll(){
         List<AcopioEntity> acopios = acopioService.obtenerAcopios();
+        if (acopios.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(acopios);
+    }
+
+    @GetMapping("/{idProveedor}")
+    public ResponseEntity<List<AcopioEntity>> getByIdProveedor(@PathVariable("proveedorId") String idProveedor){
+        List<AcopioEntity> acopios = acopioService.obtenerAcopioPorProveedor(idProveedor);
         if (acopios.isEmpty()){
             return ResponseEntity.noContent().build();
         }

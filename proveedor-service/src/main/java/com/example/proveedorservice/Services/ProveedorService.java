@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ProveedorService {
@@ -13,8 +14,8 @@ public class ProveedorService {
     @Autowired
     ProveedorRepository proveedorRepository;
 
-    public ArrayList<ProveedorEntity> obtenerProveedores(){
-        return (ArrayList<ProveedorEntity>) proveedorRepository.findAll();
+    public List<ProveedorEntity> obtenerProveedores(){
+        return (List<ProveedorEntity>) proveedorRepository.findAll();
     }
     public ProveedorEntity obtenerProveedorPorId(String idProveedor){
         return proveedorRepository.getReferenceById(idProveedor);
