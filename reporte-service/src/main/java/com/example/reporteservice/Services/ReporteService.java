@@ -95,7 +95,32 @@ public class ReporteService{
         return acopio;
     }
 
-    /*
+    public void generarPago(){
+
+    }
+
+    public Double lecheQuincena(ArrayList<AcopioModel> acopios){
+        double acum = 0;
+
+        for (AcopioModel acopio:acopios){
+            acum = acum + acopio.getLeche();
+        }
+
+        return acum;
+    }
+
+    public Integer cantidadDias(ArrayList<AcopioModel> acopios){
+        int acum = 0;
+        Date fechaAnt = new Date();
+        for (AcopioModel acopio: acopios){
+            if (acopio.getFecha() != fechaAnt){
+                acum = acum + 1;
+            }
+            fechaAnt = acopio.getFecha();
+        }
+        return acum;
+    }
+
     public void guardarDataDB(String proveedor, String grasa, String solido){
 
         Double cantLeche = 0.0;
@@ -109,12 +134,14 @@ public class ReporteService{
         newReporte.setPorGrasa(Double.parseDouble(grasa));
         newReporte.setPorSolidos(Double.parseDouble(solido));
 
-        //sacamos la info de los acopios
-        if(acopioService.exiteAlguno(proveedor)) {
+        ArrayList<AcopioModel> acopiosProveedor = (ArrayList<AcopioModel>) consultaAcopio(proveedor);
 
-            Date fechaAux = acopioService.conseguirFechaAcopios(proveedor);
-            cantLeche = acopioService.totalLecheQuincena(proveedor);
-            cantDias = acopioService.cantDias(proveedor);
+        //sacamos la info de los acopios
+        if(!acopiosProveedor.isEmpty()) {
+
+            Date fechaAux = acopiosProveedor.get(acopiosProveedor.size()-1).getFecha();
+            cantLeche = lecheQuincena(acopiosProveedor);
+            cantDias = cantidadDias(acopiosProveedor);
             promLeche = cantLeche/cantDias;
             solidos = (cantLeche * newReporte.getPorSolidos())/100;
             grasas = (cantLeche * newReporte.getPorGrasa())/100;
@@ -177,14 +204,14 @@ public class ReporteService{
 
 
         //debemos conectarlo con un controlador
-        pagoService.generarPago(newReporte.getId(),newReporte.getIdProveedor(),newReporte.getLeche(),newReporte.getQuincena(),newReporte.getMes(),newReporte.getAnio(),newReporte.getSolidos(),newReporte.getGrasa(),newReporte.getVarSolidos(),newReporte.getVarGrasa(),newReporte.getVarCantLeche(),newReporte.getPromedioLeche(), newReporte.getPorGrasa(),newReporte.getPorSolidos());
+        generarPago(newReporte);
         //tal vez con lo siguiente se arregle
         //return newReporte;
 
 
     }
 
-    */
+
 
     @Generated
     public void leerCsv(String direccion) {

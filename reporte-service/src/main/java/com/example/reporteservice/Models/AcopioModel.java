@@ -15,4 +15,6 @@ public class AcopioModel {
     private Character turno;
     private Double leche;
 
+
+
 }

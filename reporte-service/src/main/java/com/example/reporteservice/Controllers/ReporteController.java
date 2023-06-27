@@ -35,6 +35,7 @@ public class ReporteController {
         return ResponseEntity.ok(reporte);
     }
 
+    /*
     @GetMapping("/{proveedorId}")
     public ResponseEntity<List<AcopioModel>> obtenerAcopioPorProveedor(@PathVariable("proveedorId") String proveedorId) {
         List<AcopioModel> aux = reporteService.consultaAcopio(proveedorId);
@@ -43,4 +44,5 @@ public class ReporteController {
         }
         return ResponseEntity.ok(aux);
     }
+    */
 }
