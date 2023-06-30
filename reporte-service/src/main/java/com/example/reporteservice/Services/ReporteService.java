@@ -95,8 +95,8 @@ public class ReporteService{
         return acopio;
     }
 
-    public void generarPago(){
-
+    public void generarPago(ReporteEntity reporte){
+        restTemplate.postForObject("http://pago-service/pago/upload", reporte, Void.class);
     }
 
     public Double lecheQuincena(ArrayList<AcopioModel> acopios){

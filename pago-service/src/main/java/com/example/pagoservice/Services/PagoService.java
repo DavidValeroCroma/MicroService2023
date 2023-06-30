@@ -1,29 +1,125 @@
 package com.example.pagoservice.Services;
 
 import com.example.pagoservice.Entities.PagoEntity;
+import com.example.pagoservice.Models.AcopioModel;
+import com.example.pagoservice.Models.ProveedorModel;
+import com.example.pagoservice.Models.ReporteModel;
 import com.example.pagoservice.Repositories.PagoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class PagoService {
     @Autowired
     PagoRepository pagoRepository;
 
+    @Autowired
+    RestTemplate restTemplate;
+
     public ArrayList<PagoEntity> obtenerPagos(){
         return (ArrayList<PagoEntity>) pagoRepository.findAll();
     }
 
-    public void generarPago(Long idRep, String idProveedor, Double leche, Integer quincena, Integer mes, Integer anio, Double solidos, Double grasa, Double varSolidos, Double varGrasa, Double varCantLeche, Double promedioLeche, Double porGrasa, Double porSolidos){
-        ProveedorEntity proveedorAux = proveedorService.obtenerProveedorPorId(idProveedor);
+    public ProveedorModel getProveedor(String idProveedor){
+        ResponseEntity<ProveedorModel> response = restTemplate.exchange(
+                "http://proveedor-service/proveedor/" + idProveedor,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<ProveedorModel>() {}
+        );
+        ProveedorModel proveedor = response.getBody();
+        return proveedor;
+    }
+
+    public List<AcopioModel> consultaAcopio(String proveedorId){
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<List<AcopioModel>> response = restTemplate.exchange("http://acopio-service/acopio/" + proveedorId, HttpMethod.GET, entity, new ParameterizedTypeReference<List<AcopioModel>>() {});
+
+        List<AcopioModel> acopio = response.getBody();
+        return acopio;
+    }
+
+    public Double bonificacionCons(List<AcopioModel> acopios){
+
+        int diasSeguidos = 0;
+        int diasTardeSeguidos = 0;
+        int diasMañanaSeguidos = 0;
+        Character turnoPrevio = 'O';
+        Character turnoDiaPrevio = 'O';
+        int diaPrevio = 200;
+
+        if(!acopios.isEmpty()) {
+
+            //calculamos los dias y/o turnos seguidos
+            for (AcopioModel acopio : acopios) {
+
+                if (acopio.getFecha().getDay() == diaPrevio + 1) {
+                    if ((turnoPrevio == 'M' || turnoDiaPrevio == 'M') && acopio.getTurno() == 'M') {
+                        diasMañanaSeguidos = diasMañanaSeguidos + 1;
+                    } else if ((turnoPrevio == 'T' || turnoDiaPrevio == 'T') && acopio.getTurno() == 'T') {
+                        diasTardeSeguidos = diasTardeSeguidos + 1;
+                    } else {
+                        diasMañanaSeguidos = 0;
+                        diasTardeSeguidos = 0;
+                    }
+
+                } else if (acopio.getFecha().getDay() == diaPrevio) {
+                    if (turnoPrevio == 'M' && acopio.getTurno() == 'T') {
+                        diasSeguidos = diasSeguidos + 1;
+                    }
+                } else {
+                    diasSeguidos = 0;
+                    diasMañanaSeguidos = 0;
+                    diasTardeSeguidos = 0;
+                }
+
+                turnoDiaPrevio = turnoPrevio;
+                turnoPrevio = acopio.getTurno();
+                diaPrevio = acopio.getFecha().getDay();
+
+            }
+        }
+        //Vemos cual es la bonificación que le corresponde
+
+        if(diasSeguidos >= 10){
+            return 0.2;
+
+        }else if(diasMañanaSeguidos >= 10){
+            return 0.12;
+
+        }else if(diasTardeSeguidos >= 10){
+            return 0.08;
+        }
+        return  0.0;
+
+    }
+
+
+    public void generarPago(ReporteModel reporte, String idRep){
+        ProveedorModel proveedorAux = getProveedor(reporte.getIdProveedor());
         PagoEntity nuevoPago = new PagoEntity();
-        nuevoPago.setIdReporte(idRep);
-        nuevoPago.setIdProveedor(idProveedor);
-        nuevoPago.setQuincena(quincena);
-        nuevoPago.setMes(mes);
-        nuevoPago.setAnio(anio);
+        nuevoPago.setIdReporte(Long.parseLong(idRep));
+        nuevoPago.setIdProveedor(reporte.getIdProveedor());
+        nuevoPago.setQuincena(reporte.getQuincena());
+        nuevoPago.setMes(reporte.getMes());
+        nuevoPago.setAnio(reporte.getAnio());
+        Double leche = reporte.getLeche();
+        Double varSolidos = reporte.getVarSolidos();
+        Double varGrasa = reporte.getVarGrasa();
+        Double varCantLeche = reporte.getVarCantLeche();
+        Double porGrasa = reporte.getPorGrasa();
+        Double porSolidos = reporte.getPorSolidos();
+
 
         //calculamos el pago total de leche
         double pagoLeche = 0;
@@ -76,7 +172,10 @@ public class PagoService {
         //Sacamos el pago por acopio de leche
 
         //hay que conectarlo con el controlador en vez de service
-        //double bonificacion = pagoLeche * acopioService.bonificacionCons(idProveedor);
+
+        List<AcopioModel> acopios = consultaAcopio(reporte.getIdProveedor());
+
+        double bonificacion = pagoLeche * bonificacionCons(acopios);
 
         nuevoPago.setBonoFrec(bonificacion);
 

@@ -71,60 +71,7 @@ public class AcopioService {
         return acum;
     }
 
-    public Double bonificacionCons(String idProveedor){
 
-        int diasSeguidos = 0;
-        int diasTardeSeguidos = 0;
-        int diasMañanaSeguidos = 0;
-        Character turnoPrevio = 'O';
-        Character turnoDiaPrevio = 'O';
-        int diaPrevio = 200;
-
-        if(acopioRepository.existsAny(idProveedor)) {
-            ArrayList<AcopioEntity> acopios = obtenerAcopioPorProveedor(idProveedor);
-            //calculamos los dias y/o turnos seguidos
-            for (AcopioEntity acopio : acopios) {
-
-                if (acopio.getFecha().getDay() == diaPrevio + 1) {
-                    if ((turnoPrevio == 'M' || turnoDiaPrevio == 'M') && acopio.getTurno() == 'M') {
-                        diasMañanaSeguidos = diasMañanaSeguidos + 1;
-                    } else if ((turnoPrevio == 'T' || turnoDiaPrevio == 'T') && acopio.getTurno() == 'T') {
-                        diasTardeSeguidos = diasTardeSeguidos + 1;
-                    } else {
-                        diasMañanaSeguidos = 0;
-                        diasTardeSeguidos = 0;
-                    }
-
-                } else if (acopio.getFecha().getDay() == diaPrevio) {
-                    if (turnoPrevio == 'M' && acopio.getTurno() == 'T') {
-                        diasSeguidos = diasSeguidos + 1;
-                    }
-                } else {
-                    diasSeguidos = 0;
-                    diasMañanaSeguidos = 0;
-                    diasTardeSeguidos = 0;
-                }
-
-                turnoDiaPrevio = turnoPrevio;
-                turnoPrevio = acopio.getTurno();
-                diaPrevio = acopio.getFecha().getDay();
-
-            }
-        }
-        //Vemos cual es la bonificación que le corresponde
-
-        if(diasSeguidos >= 10){
-            return 0.2;
-
-        }else if(diasMañanaSeguidos >= 10){
-            return 0.12;
-
-        }else if(diasTardeSeguidos >= 10){
-            return 0.08;
-        }
-        return  0.0;
-
-    }
 
     @Generated
     public String guardar(MultipartFile file){
