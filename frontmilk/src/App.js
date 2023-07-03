@@ -1,25 +1,26 @@
-import logo from './logo.svg';
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css';
+import ProveedoresComponent from "./components/ProveedoresComponent.jsx";
+import PagosComponent from "./components/PagosComponent.jsx";
+import AcopioComponent from "./components/AcopioComponent.jsx";
+import ReportesComponent from "./components/ReportesComponent.jsx";
+import HomeComponent from "./components/HomeComponent.jsx";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/proveedores" element={<ProveedoresComponent />} />
+          <Route path="/pagos" element={<PagosComponent />} />
+          <Route path="/acopio" element={<AcopioComponent />} />
+          <Route path="/reportes" element={<ReportesComponent />} />
+          <Route path="/" element={<HomeComponent />} />          
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
 
 export default App;
+
