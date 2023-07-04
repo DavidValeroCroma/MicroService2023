@@ -1,0 +1,5 @@
+-- Tabla pago
+INSERT INTO pago (id, id_proveedor, id_reporte, quincena, mes, anio, pago_total, pago_leche, pago_grasa, pago_solidos, bono_frec, desc_var_leche, desc_var_grasa, desc_var_sol, monto_ret, pago_final) VALUES
+                                                                                                                                                                                                           (1, 'proveedor1', 1, 1, 6, 2023, 900.0, 500.0, 200.0, 150.0, 50.0, 20.0, 30.0, 10.0, 90.0, 900.0),
+                                                                                                                                                                                                           (2, 'proveedor1', 2, 1, 6, 2023, 756.0, 400.0, 160.0, 120.0, 40.0, 18.0, 28.0, 8.0, 75.6, 756.0),
+                                                                                                                                                                                                           (3, 'proveedor2', 3, 1, 6, 2023, 1070.0, 600.0, 250.0, 180.0, 60.0, 25.0, 35.0, 15.0, 107.0, 1070.0);
