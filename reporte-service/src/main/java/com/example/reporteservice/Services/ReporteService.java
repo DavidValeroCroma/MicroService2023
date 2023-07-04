@@ -227,7 +227,7 @@ public class ReporteService{
                 if (count == 1) {
                     count = 0;
                 } else {
-                    //guardarDataDB(bfRead.split(";")[0], bfRead.split(";")[1], bfRead.split(";")[2]);
+                    guardarDataDB(bfRead.split(";")[0], bfRead.split(";")[1], bfRead.split(";")[2]);
                     temp = temp + "\n" + bfRead;
                 }
             }
