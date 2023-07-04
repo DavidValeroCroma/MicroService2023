@@ -1,0 +1,42 @@
+import React, { useEffect, useState } from 'react';
+import { obtenerPagos } from '../services/pagoService';
+
+const ListarPagos = () => {
+  const [pagos, setPagos] = useState([]);
+
+  useEffect(() => {
+    obtenerPagos()
+      .then((data) => {
+        setPagos(data);
+      })
+      .catch((error) => {
+        console.error('Error al obtener los pagos:', error);
+      });
+  }, []);
+
+  return (
+    <div>
+      <h2>Listar Pagos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID Pago</th>
+            <th>Valor</th>
+            {/* Agregar más columnas según las propiedades del objeto Pago */}
+          </tr>
+        </thead>
+        <tbody>
+          {pagos.map((pago) => (
+            <tr key={pago.id}>
+              <td>{pago.id}</td>
+              <td>{pago.valor}</td>
+              {/* Agregar más celdas según las propiedades del objeto Pago */}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default ListarPagos;
